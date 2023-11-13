@@ -22,11 +22,11 @@ function preload() {
 }
 
 function windowResized() {
-  // resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(windowWidth, windowHeight);
 }
 
 function setup() {
-  createCanvas(canvasWidth, canvasHeight);
+  createCanvas(windowWidth, windowHeight);
   cg = createGraphics(width, height, WEBGL);
   typoCg = createGraphics(width, height, WEBGL);
   noSmooth();
@@ -66,7 +66,7 @@ function draw() {
   background(bgColor);
   cg.background(bgColor);
 
-  zoomScale = map(zoomRatio, 0, width, 0, 1);
+  zoomScale = map(zoomRatio, 0, height, 0, 1);
   zoomRatio = constrain(zoomRatio, 300, height * 4);
   // info.a = map(zoomRatio, 300, height * 4, -255, 255);
   // for (let i = 0; i < 10; i++) {
@@ -884,13 +884,13 @@ class Info {
     fill(0, this.a);
     push();
     textFont(fontBd);
-    textSize(width * 0.19);
-    text("RUN", width * 0.22, height * 0.065);
+    textSize(height * 0.19);
+    text("RUN", height * 0.22, height * 0.065);
     pop();
 
     push();
     textFont(fontBd);
-    textSize(width * 0.02);
+    textSize(height * 0.02);
     text("Press MOUSE-L to move", width * 0.5, height * 0.93);
     text("SCROLL to zoom in / out", width * 0.5, height * 0.955);
     pop();
@@ -898,7 +898,7 @@ class Info {
     push();
     textAlign(RIGHT, CENTER);
     textFont(fontBd);
-    textSize(width * 0.025);
+    textSize(height * 0.025);
     text("KONKUK UNIV", width * 0.96, height * 0.04);
     text("COMMUNICATION DESIGN", width * 0.96, height * 0.07);
     // text("202013019", width * 0.96, height * 0.1);
@@ -923,7 +923,7 @@ class Info {
         }
         translate(width * 0.5, height * 0.1);
         rotate(i + HALF_PI);
-        rect(0, 58, width * 0.017, width * 0.025);
+        rect(0, height / 20, height * 0.017, height * 0.025);
         pop();
       }
     }
