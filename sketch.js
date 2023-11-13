@@ -899,8 +899,8 @@ class Info {
     textAlign(RIGHT, CENTER);
     textFont(fontBd);
     textSize(height * 0.025);
-    text("KONKUK UNIV", width * 0.96, height * 0.04);
-    text("COMMUNICATION DESIGN", width * 0.96, height * 0.07);
+    text("KONKUK UNIV", width - height * 0.04, height * 0.04);
+    text("COMMUNICATION DESIGN", width - height * 0.04, height * 0.07);
     // text("202013019", width * 0.96, height * 0.1);
     textSize(width * 0.0255);
     // text("202013019 YONGPA HAN", width * 0.96, height * 0.12);
