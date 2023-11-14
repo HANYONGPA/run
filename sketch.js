@@ -6,10 +6,13 @@ let fontBd;
 
 let snow = [];
 let tree = [];
+let reedBlock = [];
 let a;
 let f = [];
 let info;
 let camera;
+let bgm;
+let stepSound = [];
 
 let zoomScale = 10;
 let zoomRatio = canvasHeight * 4;
@@ -19,6 +22,11 @@ let bgColor;
 function preload() {
   fontMd = loadFont("fonts/Md.ttf");
   fontBd = loadFont("fonts/Bd.ttf");
+  soundFormats("mp3", "ogg");
+  bgm = loadSound("sounds/winter");
+  for (let i = 0; i < 5; i++) {
+    stepSound[i] = loadSound(`sounds/${i}`);
+  }
 }
 
 function windowResized() {
@@ -56,10 +64,19 @@ function setup() {
         random(-height * 10, height * 10)
       )
     );
-    // tree.push(new Tree(100, 0));
   }
-
+  for (let i = 0; i < 1; i++) {
+    reedBlock.push(
+      new ReedBlock(
+        random(-width * 1, width * 1),
+        random(-height * 1, height * 1)
+      )
+    );
+  }
   info = new Info();
+
+  bgm.setVolume(0.05);
+  bgm.loop();
 }
 
 function draw() {
@@ -68,6 +85,9 @@ function draw() {
 
   zoomScale = map(zoomRatio, 0, height, 0, 1);
   zoomRatio = constrain(zoomRatio, 300, height * 4);
+  for (let s of stepSound) {
+    s.setVolume(map(zoomScale, 0, 1, 0.1, 0.3));
+  }
   // info.a = map(zoomRatio, 300, height * 4, -255, 255);
   // for (let i = 0; i < 10; i++) {
   // snow.push(
@@ -112,8 +132,11 @@ function draw() {
     cg.pop();
   }
   a.display();
-  for (let i = 0; i < tree.length; i++) {
-    tree[i].display();
+  for (let t of tree) {
+    t.display();
+  }
+  for (let r of reedBlock) {
+    r.display();
   }
   // for (let i = 0; i < f.length; i++) {
   //   f[i].display();
@@ -195,17 +218,14 @@ class Frame {
 
   generateFootprint() {
     //
-    if (
-      // mouseIsPressed &&
-      // floor(this.body.leftLeg.theta) <= 1 &&
-      floor(this.body.leftLeg.theta) >= 360
-    ) {
+    if (floor(this.body.leftLeg.theta) >= 360) {
       this.footPrint.push(
         new Footprint(
           this.body.leftLeg.a.bPos.x,
           this.body.leftLeg.a.bPos.y + 20
         )
       );
+      stepSound[floor(random(5))].play();
     }
     if (floor(this.body.rightLeg.theta >= 360)) {
       this.footPrint.push(
@@ -214,6 +234,7 @@ class Frame {
           this.body.rightLeg.a.bPos.y + 20
         )
       );
+      stepSound[floor(random(5))].play();
     }
   }
 
@@ -285,10 +306,12 @@ class Body {
     this.dir2 = 0;
 
     this.colorPallete = [
-      color(255, 0, 0, 255),
-      color(255, 200, 0, 255),
+      color(255, 20, 100, 255),
+      color(255, 220, 100, 255),
       color(40, 200, 120, 255),
       color(100, 0, 255, 255),
+      color(100, 200, 40, 255),
+      color(140, 80, 40, 255),
     ];
     this.randColNum = floor(random(this.colorPallete.length));
     this.randColNum2 = floor(random(this.colorPallete.length));
@@ -875,7 +898,7 @@ class Info {
     this.c = a.body.colorPallete[a.body.randColNum];
 
     this.fadeCheck = false;
-    this.fadeAmt = 0.3;
+    this.fadeAmt = 0.2;
   }
 
   display() {
@@ -938,7 +961,7 @@ class Info {
   }
 
   fade() {
-    if (zoomRatio < height * 4 * 0.95) {
+    if (zoomRatio < height * 4 * 0.9) {
       this.fadeCheck = true;
     } else this.fadeCheck = false;
   }
@@ -995,8 +1018,6 @@ class Tree {
     this.id = id;
 
     this.size = random(15, 25);
-
-    this.zIndex = 0;
   }
 
   display() {
@@ -1037,9 +1058,6 @@ class Tree {
   }
 
   update() {
-    this.relativeMouseX = mouseX - width / 2;
-    this.relativeMouseY = mouseY - height / 2;
-
     let target = createVector(a.frameLine.bPos.x, a.frameLine.bPos.y);
     let dir = p5.Vector.sub(this.pos, target);
     dir.normalize();
@@ -1049,6 +1067,92 @@ class Tree {
       this.zIndex = 1.5;
     } else {
       this.zIndex = 0.5;
+    }
+  }
+}
+
+class ReedBlock {
+  constructor(x, y) {
+    this.pos = createVector(x, y);
+
+    this.reed = [];
+
+    this.generateReeds(x, y);
+  }
+
+  generateReeds(x, y) {
+    for (let i = 0; i < 300; i++) {
+      tree.push(
+        new Reed(
+          random(x - width * random(0.3), x + width * random(0.3)),
+          random(y - height * random(0.3), y + height * random(0.3))
+        )
+      );
+    }
+  }
+
+  display() {
+    for (let r of this.reed) {
+      r.display();
+    }
+  }
+}
+
+class Reed {
+  constructor(x, y, id) {
+    this.pos = createVector(x, y);
+    this.weight = random(6, 10);
+    this.aPos = createVector(0, 100);
+    this.bPos = createVector(0, 0);
+    this.id = id;
+
+    this.theta = 0;
+
+    this.length = random(30);
+
+    this.zIndex = 0;
+  }
+
+  display() {
+    this.update();
+    cg.stroke(0);
+    cg.strokeWeight(this.weight * zoomScale);
+    cg.push();
+    cg.translate(this.pos.x, this.pos.y, this.zIndex);
+    cg.line(this.aPos.x, this.aPos.y, this.bPos.x, this.bPos.y);
+    cg.pop();
+  }
+
+  update() {
+    let target = createVector(a.frameLine.bPos.x, a.frameLine.bPos.y);
+    let dir = p5.Vector.sub(this.pos, target);
+    dir.normalize();
+    this.pos.add(dir.mult(a.fpSpeed * 0.6));
+
+    this.theta += 0.01;
+
+    let target2 = createVector(0, 0);
+    let dist = p5.Vector.dist(this.pos, target2);
+
+    if (dist < 50 && a.body.speed > 10) {
+      // cg.ellipse(this.pos.x, this.pos.y, 200);
+      this.bPos.x = lerp(this.bPos.x, a.body.dir * this.weight * 8, 0.2);
+      this.bPos.y = lerp(
+        this.bPos.y,
+        abs(a.body.dir2) * this.weight * 8 - this.length,
+        0.2
+      );
+      // this.bPos.x = a.body.dir * this.weight * 5;
+      // this.bPos.y = abs(a.body.dir2) * this.weight * 1;
+    } else {
+      this.bPos.x = lerp(this.bPos.x, cos(this.theta) * this.weight * 3, 0.2);
+      this.bPos.y = lerp(this.bPos.y, -this.length, 0.2);
+    }
+
+    if (this.pos.y > 0) {
+      this.zIndex = 1.7;
+    } else {
+      this.zIndex = 0.7;
     }
   }
 }
